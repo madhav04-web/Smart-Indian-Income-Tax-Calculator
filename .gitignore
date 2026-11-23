@@ -1,0 +1,4 @@
+target/
+reports/*.pdf
+reports/*.csv
+.env
