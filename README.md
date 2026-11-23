@@ -76,3 +76,11 @@ Add screenshots here after running the application in a configured MySQL environ
 ## Future enhancements
 
 Add fully modeled deduction eligibility and regime restrictions, business-income regime selection, capital-gains categories/rates, surcharge and marginal relief above ₹50 lakh, independent income/deduction record editing, reopen/report workflows for saved calculations, recent-calculation dashboard cards, and rule configurations for additional tax years.
+
+## Video Presentation
+
+**Project:** Smart Indian Income Tax Calculator
+
+**Project Demonstration Video:**
+
+[Click here to watch the project presentation](https://drive.google.com/file/d/1ctiv7Ibkbc5mit0lBMR2l-9GIiyTh4L5/view?usp=drive_link)
