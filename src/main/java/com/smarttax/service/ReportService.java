@@ -1,0 +1,20 @@
+package com.smarttax.service;
+
+import com.lowagie.text.*;
+import com.lowagie.text.pdf.*;
+import com.smarttax.model.*;
+import java.io.*;
+import java.nio.file.*;
+
+public final class ReportService {
+    public Path pdf(Taxpayer person, TaxInput input, TaxCalculationService.Comparison c) throws Exception {
+        Path folder=Path.of("reports");Files.createDirectories(folder);Path file=folder.resolve("tax-summary-"+person.pan()+"-"+System.currentTimeMillis()+".pdf");
+        Document doc=new Document();try(OutputStream out=Files.newOutputStream(file)){PdfWriter.getInstance(doc,out);doc.open();doc.add(new Paragraph("SMART INDIAN INCOME TAX CALCULATOR",FontFactory.getFont(FontFactory.HELVETICA_BOLD,18)));doc.add(new Paragraph("Tax estimate • Tax Year 2026-27 (Income-tax Act, 2025)"));doc.add(new Paragraph("Taxpayer: "+person.fullName()+" • PAN: "+person.pan().substring(0,2)+"******"+person.pan().substring(8)));doc.add(new Paragraph(" "));
+            PdfPTable income=new PdfPTable(2);income.setWidthPercentage(100);income.addCell("Income component");income.addCell("Amount");detail(income,"Salary",input.salary());detail(income,"House property",input.houseProperty());detail(income,"Business / profession",input.business());detail(income,"Capital gains",input.capitalGains());detail(income,"Other income",input.otherIncome());doc.add(new Paragraph("Income breakdown",FontFactory.getFont(FontFactory.HELVETICA_BOLD,13)));doc.add(income);
+            PdfPTable deductions=new PdfPTable(2);deductions.setWidthPercentage(100);deductions.addCell("Deduction / exemption");deductions.addCell("Amount entered");detail(deductions,"Section 80C",input.section80c());detail(deductions,"Section 80D",input.section80d());detail(deductions,"Section 80G",input.section80g());detail(deductions,"Section 80E",input.section80e());detail(deductions,"Section 80TTA / 80TTB",input.section80tta());detail(deductions,"Section 80CCD(1B)",input.section80ccd1b());detail(deductions,"Other deductions",input.otherDeductions());detail(deductions,"HRA exemption",input.hraExemption());detail(deductions,"Standard deduction",input.standardDeduction());doc.add(new Paragraph("Deductions entered (eligible amounts may differ)",FontFactory.getFont(FontFactory.HELVETICA_BOLD,13)));doc.add(deductions);
+            PdfPTable t=new PdfPTable(new float[]{2,1,1});t.setWidthPercentage(100);for(String h:new String[]{"Measure","Old regime","New regime"})t.addCell(h);
+            row(t,"Gross income",c.oldRegime().grossIncome().toPlainString(),c.newRegime().grossIncome().toPlainString());row(t,"Eligible deductions",c.oldRegime().deductions().toPlainString(),c.newRegime().deductions().toPlainString());row(t,"Taxable income",c.oldRegime().taxableIncome().toPlainString(),c.newRegime().taxableIncome().toPlainString());row(t,"Tax before rebate",c.oldRegime().taxBeforeRebate().toPlainString(),c.newRegime().taxBeforeRebate().toPlainString());row(t,"Rebate / marginal relief",c.oldRegime().rebate().toPlainString(),c.newRegime().rebate().toPlainString());row(t,"Surcharge",c.oldRegime().surcharge().toPlainString(),c.newRegime().surcharge().toPlainString());row(t,"Cess",c.oldRegime().cess().toPlainString(),c.newRegime().cess().toPlainString());row(t,"Tax payable",c.oldRegime().taxPayable().toPlainString(),c.newRegime().taxPayable().toPlainString());row(t,"Effective tax rate (%)",c.oldRegime().effectiveRate().toPlainString(),c.newRegime().effectiveRate().toPlainString());doc.add(t);doc.add(new Paragraph("Recommended regime: "+c.recommendedRegime()+" • Difference: ₹"+c.savings()));doc.add(new Paragraph("Estimate only. Tax rules, special-rate income, eligibility conditions and rounding can affect actual tax. This report is not tax advice."));doc.close();}return file;
+    }
+    private void row(PdfPTable t,String a,String b,String c){t.addCell(a);t.addCell("₹"+b);t.addCell("₹"+c);}
+    private void detail(PdfPTable t,String label,java.math.BigDecimal amount){t.addCell(label);t.addCell("₹"+amount.toPlainString());}
+}
